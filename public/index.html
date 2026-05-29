@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Data Analysis Reporter</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <div class="topbar">
+          <div>
+            <h1>Sales Dashboard</h1>
+            <p>Upload CSV or Excel sales statements to review branch-wise performance by month range.</p>
+          </div>
+          <button id="downloadReport" class="secondary" type="button" disabled>Export JSON</button>
+        </div>
+
+        <form id="uploadForm" class="upload-panel">
+          <label class="dropzone" for="csvFile">
+            <input id="csvFile" name="file" type="file" accept=".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required />
+            <span class="drop-title">Choose CSV or Excel file</span>
+            <span id="fileName" class="drop-hint">Maximum upload size: 25 MB</span>
+          </label>
+          <fieldset class="filter-panel">
+            <legend>Report Period</legend>
+            <label>
+              <span>Mode</span>
+              <select id="periodMode" name="periodMode">
+                <option value="monthRange">Month range</option>
+                <option value="all">Auto / full file</option>
+              </select>
+            </label>
+            <label class="period-control" data-mode-control="monthRange">
+              <span>Start month</span>
+              <input id="startMonth" name="startMonth" type="month" value="2026-04" />
+            </label>
+            <label class="period-control" data-mode-control="monthRange">
+              <span>End month</span>
+              <input id="endMonth" name="endMonth" type="month" value="2026-04" />
+            </label>
+          </fieldset>
+          <button id="analyzeButton" type="submit">Generate Report</button>
+        </form>
+
+        <p id="status" class="status" role="status"></p>
+
+        <section id="report" class="report is-empty">
+          <div class="empty-state">
+            <h2>No report yet</h2>
+            <p>Select a CSV or Excel file and generate a branch-wise dashboard.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
