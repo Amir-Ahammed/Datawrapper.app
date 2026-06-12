@@ -8,7 +8,9 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 const REPORT_DIR = path.join(__dirname, "reports");
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
-fs.mkdirSync(REPORT_DIR, { recursive: true });
+function ensureReportDir() {
+  fs.mkdirSync(REPORT_DIR, { recursive: true });
+}
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -735,15 +737,18 @@ function formatPercent(value) {
   return new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 }).format(value);
 }
 
-async function handleUpload(req, res) {
+async function handleUpload(req, res, options = {}) {
   try {
     const body = await collectBody(req);
     const { file, fields } = parseMultipart(body, req.headers["content-type"]);
 
     const { headers, records, metadata } = parseUpload(file);
     const report = buildReport(file.filename, headers, records, metadata, fields);
-    const reportPath = path.join(REPORT_DIR, `${report.id}.json`);
-    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+    if (options.persist !== false) {
+      ensureReportDir();
+      const reportPath = path.join(REPORT_DIR, `${report.id}.json`);
+      fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+    }
     sendJson(res, 200, report);
   } catch (error) {
     sendJson(res, 400, { error: error.message || "Unable to analyze this file." });
@@ -781,6 +786,14 @@ const server = http.createServer((req, res) => {
   send(res, 405, "Method not allowed");
 });
 
-server.listen(PORT, () => {
-  console.log(`Data Analysis Reporter running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  ensureReportDir();
+  server.listen(PORT, () => {
+    console.log(`Data Analysis Reporter running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = {
+  handleUpload,
+  server,
+};

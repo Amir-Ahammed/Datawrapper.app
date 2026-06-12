@@ -17,8 +17,18 @@ npm start
 Open:
 
 ```text
-http://localhost:5000
+http://localhost:7000
 ```
+
+## Deploy to Vercel
+
+This project includes a Vercel serverless function at:
+
+```text
+api/analyze.js
+```
+
+Deploy with the Vercel CLI or by importing the repository in Vercel. The static UI is served from `public/`, and uploads are handled by `POST /api/analyze`.
 
 ## Features
 
