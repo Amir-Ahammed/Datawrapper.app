@@ -1,0 +1,5 @@
+samples/
+*.xls
+*.log
+*.DS_Store
+.git/
