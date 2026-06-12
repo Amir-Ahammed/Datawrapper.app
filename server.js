@@ -745,9 +745,13 @@ async function handleUpload(req, res, options = {}) {
     const { headers, records, metadata } = parseUpload(file);
     const report = buildReport(file.filename, headers, records, metadata, fields);
     if (options.persist !== false) {
-      ensureReportDir();
-      const reportPath = path.join(REPORT_DIR, `${report.id}.json`);
-      fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+      try {
+        ensureReportDir();
+        const reportPath = path.join(REPORT_DIR, `${report.id}.json`);
+        fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+      } catch (error) {
+        console.warn(`Report persistence skipped: ${error.message}`);
+      }
     }
     sendJson(res, 200, report);
   } catch (error) {
@@ -767,33 +771,36 @@ function handleReport(req, res) {
   send(res, 200, fs.readFileSync(reportPath), "application/json; charset=utf-8");
 }
 
-const server = http.createServer((req, res) => {
-  if (req.method === "POST" && req.url === "/api/analyze") {
-    handleUpload(req, res);
-    return;
-  }
+function createServer() {
+  return http.createServer((req, res) => {
+    if (req.method === "POST" && req.url === "/api/analyze") {
+      handleUpload(req, res);
+      return;
+    }
 
-  if (req.method === "GET" && req.url.startsWith("/api/reports/")) {
-    handleReport(req, res);
-    return;
-  }
+    if (req.method === "GET" && req.url.startsWith("/api/reports/")) {
+      handleReport(req, res);
+      return;
+    }
 
-  if (req.method === "GET") {
-    serveStatic(req, res);
-    return;
-  }
+    if (req.method === "GET") {
+      serveStatic(req, res);
+      return;
+    }
 
-  send(res, 405, "Method not allowed");
-});
+    send(res, 405, "Method not allowed");
+  });
+}
 
 if (require.main === module) {
   ensureReportDir();
+  const server = createServer();
   server.listen(PORT, () => {
     console.log(`Data Analysis Reporter running at http://localhost:${PORT}`);
   });
 }
 
 module.exports = {
+  createServer,
   handleUpload,
-  server,
 };
